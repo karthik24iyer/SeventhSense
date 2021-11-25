@@ -1,6 +1,7 @@
 #pragma once
 
 #include<iostream>
+
 class MemoryRW {
 	public:
 		HANDLE hProcess;

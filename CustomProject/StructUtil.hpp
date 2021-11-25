@@ -67,3 +67,11 @@ struct DefaultChamStruct {
 	}
 
 }defChamStruct;
+
+struct BonePos {
+	float x;
+	BYTE buffer[12];
+	float y;
+	BYTE buffer1[12];
+	float z;
+};

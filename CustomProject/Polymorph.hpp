@@ -1,9 +1,21 @@
 #pragma once
 
 #include <iostream>
+#include <string>
+
+using namespace std;
 
 class Polymorph {
 	public:
+
+		string titleGen(long num) {
+			string titleName;
+			for (int i = 0;i < num;i++) {
+				titleName += rand() % 100 + 30;
+			}
+			return titleName;
+		}
+
 		void polymorphic() {
 			srand((unsigned int)time(0));
 			int count = 0;
