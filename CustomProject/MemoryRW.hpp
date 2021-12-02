@@ -2,10 +2,10 @@
 
 #include<iostream>
 
+HANDLE hProcess;
+
 class MemoryRW {
 	public:
-		HANDLE hProcess;
-
 		MODULEENTRY32 getModule(const char* modName, DWORD procId) {
 			hProcess = OpenProcess(PROCESS_ALL_ACCESS, NULL, procId);
 			HANDLE hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, procId);

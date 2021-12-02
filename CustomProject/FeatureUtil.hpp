@@ -4,15 +4,16 @@
 #include <array>
 #include "ClassId.hpp"
 #include "MyVector.hpp"
-//#include "BspParser.cpp"
+#include "BspParser.cpp"
 #include "StructUtil.hpp"
+#include "Toggles.hpp"
 
 extern MemoryRW mem;
 extern uintptr_t moduleBase;
 extern uintptr_t engineBase;
 extern bool toggleFriendlyFire;
-
 using namespace offsets;
+
 
 typedef struct {
 	float Matrix[3][4];
@@ -21,9 +22,10 @@ typedef struct {
 
 class FeatureUtil {
 	private:
-		int aimBone = 8;
+		//int aimBone = 8;
 		MyVector vec;
-		//inline static rn::bsp_parser* bspParser = new rn::bsp_parser;
+		Toggles menu;
+		inline static rn::bsp_parser* bspParser = new rn::bsp_parser;
 	public:
 
 		uintptr_t getModuleBase() {
@@ -37,6 +39,11 @@ class FeatureUtil {
 		uintptr_t getEnginePointer() {
 			return mem.RPM<uintptr_t>(engineBase + dwClientState);
 		}
+
+		bool isInGame() {
+			return mem.RPM<int>(getEnginePointer() + dwClientState_State)==6?1:0;
+		}
+
 		uintptr_t getLocalPlayer() {
 			return getPtrOffset(moduleBase + dwLocalPlayer);
 		}
@@ -106,13 +113,14 @@ class FeatureUtil {
 			return (bool)(byMask && (1 << (index - 1)));
 		}
 
-		/*bool isVisibleByParser(uintptr_t localPlayer, uintptr_t entity) {
-			return bspParser->is_visible(getOrigin(localPlayer), getEntBonePosForParser(entity, aimBone));
+		bool isVisibleByParser(uintptr_t localPlayer, uintptr_t entity) {
+			return bspParser->is_visible(getOrigin(localPlayer), getEntBonePosForParser(entity, 8)); // aimBone 8 head
+			//return bspParser->is_visible(getOrigin(localPlayer), getOrigin(entity));
 		}
 
 		bool isMapLoaded() {
 			return bspParser->load_map(getGameDirectory(), getMapDirectory());
-		}*/
+		}
 
 		int	getEntClassID(int entity)
 		{
@@ -190,7 +198,7 @@ class FeatureUtil {
 			return mem.RPM<D3DXVECTOR3>(getLocalPlayer() + m_aimPunchAngle);
 		}
 
-		void aimAtPlayer(DWORD player, float smooth, int bone)
+		bool aimAtPlayer(DWORD player, float smooth, int bone)
 		{
 			bool isFriendlyEnabled = toggleFriendlyFire && getEntityTeam(player) == getEntityTeam(getLocalPlayer());
 			if (player != NULL && (isEntitySpotted(player)|| isFriendlyEnabled))
@@ -198,13 +206,22 @@ class FeatureUtil {
 				D3DXVECTOR3 aimAngles = getEntBonePos(player, bone) - getLocalEyePos();
 				vec.VectorAngles(aimAngles, aimAngles);
 				D3DXVECTOR3 delta = aimAngles - getLocalViewAngles();
-				D3DXVECTOR3 sAngles = vec.ClampAngles(getLocalViewAngles() + (delta / smooth));
-				if (isValidEntity(player))
-					setLocalViewAngles(sAngles);
+				float relDist = vec.getVecMagnitude(delta);
+				relDist > 1.f ? 1.f : relDist;
+				smooth < 1 ? 1 : smooth;
+				if (relDist < 0.02f) {
+					return 0;
+				}
+				//std::cout << "\nmag: " << relDist;
+				D3DXVECTOR3 sAngles = vec.ClampAngles(getLocalViewAngles() + (delta / (smooth*(1+ relDist))));
+				//std::cout << "\nangle: " << vec.getVecMagnitude(sAngles);
+				setLocalViewAngles(sAngles);
+				return 1;
 			}
+			return 1;
 		}
 
-		DWORD getClosestTarget(float fov, uintptr_t entityList[], int maxPlayers)
+		DWORD getClosestTarget(float fov, uintptr_t entityList[], int maxPlayers, int aimBone)
 		{
 			D3DXVECTOR3 viewAngles = getLocalViewAngles();
 			D3DXVECTOR3 localEyePos = getLocalEyePos();
@@ -215,7 +232,7 @@ class FeatureUtil {
 			{
 				uintptr_t localPlayer = getLocalPlayer();
 				uintptr_t entity = entityList[i];
-				bool isVisible = (isVisibleByDef(localPlayer, entity) || isVisibleByDef(entity, localPlayer));
+				bool isVisible = isVisibleByParser(localPlayer, entity);// || isVisibleByDef(entity, localPlayer);
 				bool isFriendlyEnabled = toggleFriendlyFire && getEntityTeam(entity) == getEntityTeam(localPlayer);
 				//std::cout << "\nisFriendlyEnabled= " << isFriendlyEnabled;
 				bool isEnemy = getEntityTeam(entity) != getEntityTeam(localPlayer);
@@ -262,11 +279,11 @@ class FeatureUtil {
 			};
 		}
 
-		/*rn::vector3 getEntBonePosForParser(uint32_t entity, int boneID) {
+		rn::vector3 getEntBonePosForParser(uint32_t entity, int boneID) {
 			uint32_t boneMatrix = getPtrOffset(entity + m_dwBoneMatrix);
 			BonePos bonepos = mem.RPM<BonePos>(boneMatrix + 0x30 * boneID + 0xC);
 			return { bonepos.x, bonepos.y, bonepos.z };
-		}*/
+		}
 
 		DWORD getEntBoneMatrix(DWORD playerBase)
 		{
@@ -324,7 +341,7 @@ class FeatureUtil {
 			return mapDirectory.data();
 		}
 
-		/*rn::vector3 getOrigin(uintptr_t entity) {
+		rn::vector3 getOrigin(uintptr_t entity) {
 			return mem.RPM<rn::vector3>(entity + m_vecOrigin);
-		}*/
+		}
 };

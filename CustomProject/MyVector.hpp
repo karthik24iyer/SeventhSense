@@ -36,14 +36,6 @@ class MyVector {
 
         D3DXVECTOR3 CalcAngle(const D3DXVECTOR3& src, const D3DXVECTOR3& dst)
         {
-            //square root func faster than normal func youd use
-            const auto sqrtss = [](float in)
-            {
-                __m128 reg = _mm_load_ss(&in);
-                return _mm_mul_ss(reg, _mm_rsqrt_ss(reg)).m128_f32[0];
-            };
-
-
             D3DXVECTOR3 angles;
 
             //getting delta between source and destination vectors
@@ -51,7 +43,7 @@ class MyVector {
 
             //finding the hypoteneuse using pythagoras theorem a squared + b squared = c squared
             //this gives us the vector to our enemy
-            float hyp = sqrtss(delta.x * delta.x + delta.y * delta.y);
+            float hyp = getVecMagnitude(delta);
 
             //now we need to find the angle needed to aim at the vector (aim angles)
             angles.x = (float)(asinf(delta.z / hyp) * (180 / PI));
@@ -60,6 +52,17 @@ class MyVector {
             angles.z = 0;
 
             return angles;
+        }
+
+        float getVecMagnitude(D3DXVECTOR3 delta) {
+            //square root func faster than normal func youd use
+            const auto sqrtss = [](float in)
+            {
+                __m128 reg = _mm_load_ss(&in);
+                return _mm_mul_ss(reg, _mm_rsqrt_ss(reg)).m128_f32[0];
+            };
+
+            return sqrtss(delta.x * delta.x + delta.y * delta.y);
         }
 
         void VectorAngles(D3DXVECTOR3 forward, D3DXVECTOR3& angles)

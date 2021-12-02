@@ -34,19 +34,22 @@ class Trigger {
 			int delay = 100 + rand() % 100 + 1;
 
 			boolean isSniper = false;
-			boolean isBurstFWeapon = false;
+			//boolean isBurstFWeapon = false;
 			boolean isSingleFWeapon = false;
 			boolean isSemiFWeapon = false;
 			boolean isGay = false;
-			boolean isSpam = false;
+			//boolean isSpam = false;
 			boolean isDgle = false;
 
 			if (util.getIsSniper(activeWeaponId)) {
 				isSniper = true;
 			}
-			else if (util.getIsBurstFWeapon(activeWeaponId)) {
+			/*else if (util.getIsBurstFWeapon(activeWeaponId)) {
 				isBurstFWeapon = true;
 			}
+			else if (util.getIsSpam(activeWeaponId)) {
+				isSpam = true;
+			}*/
 			else if (util.getIsSingleFWeapon(activeWeaponId)) {
 				isSingleFWeapon = true;
 			}
@@ -58,9 +61,6 @@ class Trigger {
 			}
 			else if (util.getIsGay(activeWeaponId)) {
 				isGay = true;
-			}
-			else if (util.getIsSpam(activeWeaponId)) {
-				isSpam = true;
 			}
 
 			if (isSniper && util.isScoped(localPlayer) && !util.isEntityMoving(localPlayer)) {

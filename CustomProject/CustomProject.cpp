@@ -1,74 +1,21 @@
 #define NOMINMAX
 
-#include <iostream>
-#include <Windows.h>
-#include <TlHelp32.h>
-#include <ctime>
-#include <conio.h>
-#include <vector>
-#include <stdlib.h>
-#include "MyOffsets.hpp"
-#include "Polymorph.hpp"
-#include "MemoryRW.hpp"
-#include "FeatureUtil.hpp"
-#include "Trigger.hpp"
-#include "Visible.hpp"
-#include "Cham.hpp"
-#include "Thatsit.hpp"
-#include "Toggles.hpp"
-#include <string>
+#include "Gloabls.hpp"
 
 using namespace std;
-using namespace offsets;
 
-bool toggleMain;
-bool toggleVisible;
-bool toggleRadar;
-bool toggleFlash;
-bool toggleChams;
-bool resetChams;
-bool toggleTrigger;
-bool toggleDelay;
-bool toggleNoRecoil;
-bool toggleAim;
-bool toggleFriendlyFire;
-
-uintptr_t moduleBase;
-uintptr_t engineBase;
-DWORD procId;
-HWND hwnd;
-uintptr_t engineaddr;
-HANDLE hConsole;
-
-Polymorph pm;
-MemoryRW mem;
-FeatureUtil util;
-Trigger trgr;
-Visible vis;
-Cham cham;
-Stable nr;
-Thatsit aim;
-Toggles menu;
+extern MODULEENTRY32 client;
+extern MODULEENTRY32 engine;
 
 const int maxPlayers = 32;
 const float chamsBrightness = 10.f;
 float chamsBrightnessReset = 0.f;
 
-void clearConsoleInputBuffer()
-{
-	/* keybd_event('S', 0, 0, 0);
-	keybd_event('S', 0,KEYEVENTF_KEYUP, 0);
-	keybd_event(VK_BACK, 0, 0, 0);
-	keybd_event(VK_BACK, 0,KEYEVENTF_KEYUP, 0); */
-	PINPUT_RECORD ClearingVar1 = new INPUT_RECORD[256];
-	DWORD ClearingVar2;
-	ReadConsoleInput(GetStdHandle(STD_INPUT_HANDLE), ClearingVar1, 256, &ClearingVar2);
-	delete[] ClearingVar1;
-}
 
 int main() {
-
+	bool areOffsetsLoaded = 0;
 restart:
+
 	menu.setToggles();
 	bool isWorking = 1;
 	bool chamCount = 0;
@@ -78,38 +25,43 @@ restart:
 	pm.polymorphic();
 	SetConsoleTitle(pm.titleGen(rand() % 100 + (time(0) % 1000)).c_str());
 	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-	menu.showConsoleMsg();
+
+	if (!menu.isMyHwId()) {
+		isWorking = 0;
+		debug = 1;
+		std::cout << "\n\tnot my predator\n\n\n";
+	}
+	else {
+		menu.showConsoleMsg();
+	}
 
 	hwnd = FindWindowA(NULL, "Counter-Strike: Global Offensive");
-/*
-	const char* hid = "{ced62aa7-f371-11ea-b873-806e6f6e6963}";
-	HW_PROFILE_INFO hwProfileInfo;
-	if (GetCurrentHwProfile(&hwProfileInfo)) {
-		printf("HWID: %s\n", hwProfileInfo.szHwProfileGuid);
-		const char* newHid = hwProfileInfo.szHwProfileGuid;
-		if (strcmp(hid, newHid)==0) {
-		}
-	}
-*/
+
 	if (hwnd == NULL) {
 		if (!debug) {
-			isWorking = false;
+			isWorking = 0;
 			std::cout << "\ttitle not found\n\n";
+				
 		}
 	}
 	else {
 
 		GetWindowThreadProcessId(hwnd, &procId);
-		auto client = mem.getModule("client.dll", procId);
+		client = mem.getModule("client.dll", procId);
 		moduleBase = (uintptr_t)client.modBaseAddr;
 
 		//engineaddr = mem.getModuleDll(procId, "engine.dll");
-		auto engine = mem.getModule("engine.dll", procId);
+		engine = mem.getModule("engine.dll", procId);
 		engineBase = (uintptr_t)engine.modBaseAddr;
+
+		if (!areOffsetsLoaded) {
+			sig.ScanAll(client, engine);
+			areOffsetsLoaded = 1;
+		}
 	}
 
 
-	while (!GetAsyncKeyState(VK_END) && isWorking)
+	while (!GetAsyncKeyState(VK_END) && isWorking && (util.isInGame()|| debug))
 	{
 		menu.fetchInput();
 		
@@ -175,11 +127,11 @@ restart:
 				resetChams = false;
 			}
 
-			if (toggleTrigger) {
+			if (toggleTrigger && !toggleNoRecoil) {		
 				trgr.callTrigger();				
 			}
 
-			if (toggleNoRecoil) {
+			else if (toggleNoRecoil && !toggleTrigger) {
 				nr.noRecoil();
 			}	
 
@@ -191,7 +143,8 @@ restart:
 	}
 	char k;
 	std::cout << "\tRestart ?? y/* \t";
-	clearConsoleInputBuffer();
+	menu.clearConsoleInputBuffer();
+	//menu.pressKey(VK_RETURN);
 	std::cin >> k;
 	if (k == 'Y' || k == 'y') {
 		std::cout << "\n\n";
