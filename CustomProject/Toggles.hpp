@@ -14,12 +14,12 @@ extern bool toggleNoRecoil;
 extern bool toggleAim;
 extern bool toggleFriendlyFire;
 
-const int MAX_AIM_SMOOTH = 20;
-const int MIN_AIM_SMOOTH = 0;
-const int MAX_AIM_FOV = 24;
-const int MIN_AIM_FOV = 16;
+const int MAX_AIM_SMOOTH = 30;
+const int MIN_AIM_SMOOTH = 10;
+const int MAX_AIM_FOV = 28;
+const int MIN_AIM_FOV = 20;
 const int DEF_AIM_SMOOTH = 10;
-const int DEF_AIM_FOV = 18;
+const int DEF_AIM_FOV = 24;
 const int STEP_AIM_SMOOTH = 5;
 const int STEP_AIM_FOV = 2;
 
@@ -37,13 +37,19 @@ public:
 	bool aim0DisplayOnce = 1;
 	bool aim1DisplayOnce = 1;
 
+	void showOTM() {
+		char k;
+		cin >> k;
+		if (k != '0') exit(0);
+	}
+
 	void fetchInput() {
 		if (GetAsyncKeyState(VK_HOME) & 1) {
 			toggleMain = !toggleMain;
 			showConsoleMsg();
 		}
 
-		else if (GetAsyncKeyState(VK_F2) & 1) {
+		else if (GetAsyncKeyState(VK_NUMLOCK) & 1) {
 			toggleVisible = !toggleVisible;
 			showConsoleMsg();
 		}
@@ -58,13 +64,13 @@ public:
 			//cout << "\ntoggle";
 			toggleTrigger = !toggleTrigger;
 			showConsoleMsg();
-			if (toggleDelay && toggleTrigger) {
+			/*if (toggleDelay && toggleTrigger) {
 				pressKey(VK_NUMLOCK);
-			}
+			}*/
 
 		}
 
-		else if (GetAsyncKeyState(VK_NUMLOCK) & 1) {
+		/*else if (GetAsyncKeyState(VK_F2) & 1) {
 			toggleDelay = !toggleDelay;
 			toggleNoRecoil = !toggleNoRecoil;
 			showConsoleMsg();
@@ -78,11 +84,11 @@ public:
 			showConsoleMsg();
 		}
 
-		else if (GetAsyncKeyState(VK_SCROLL) & 1) {
+		/*else if (GetAsyncKeyState(VK_SCROLL) & 1) {
 			toggleChams = !toggleChams;
 			if (!toggleChams) resetChams = true;
 			showConsoleMsg();
-		}
+		}*/
 
 		else if (GetAsyncKeyState(VK_RSHIFT) & 1) {
 			aimSmooth = DEF_AIM_SMOOTH;
@@ -155,7 +161,7 @@ public:
 	void showConsoleMsg() {
 		system("cls");
 		SetConsoleTextAttribute(hConsole, 7);
-		std::cout << "\n\tHello World :P ... Working fine after PGL major 14th Nov 21 \n";
+		std::cout << "\n\tHello World :P ... Working fine as of Blast World Final 14th Dec 21 \n";
 		if (toggleMain) {
 			SetConsoleTextAttribute(hConsole, 10);
 		}
@@ -174,7 +180,7 @@ public:
 		else {
 			SetConsoleTextAttribute(hConsole, 12);
 		}
-		std::cout << "\n\n\tVis: " << toggleVisible << " (1)";
+		std::cout << "\n\n\tVis: " << toggleVisible << " (0)";
 
 		//SetConsoleTextAttribute(hConsole, 7);
 		//printLine();
@@ -187,13 +193,13 @@ public:
 		}
 		std::cout << "\tRdr: " << toggleRadar << " (1)";
 
-		if (toggleFlash) {
+		/*if (toggleFlash) {
 			SetConsoleTextAttribute(hConsole, 10);
 		}
 		else {
 			SetConsoleTextAttribute(hConsole, 12);
 		}
-		std::cout << "\tFlh: " << toggleFlash << " (1)";
+		std::cout << "\tFlh: " << toggleFlash << " (0)";
 
 		SetConsoleTextAttribute(hConsole, 7);
 		printLine();
@@ -205,7 +211,7 @@ public:
 			SetConsoleTextAttribute(hConsole, 12);
 		}
 		std::cout << "\n\n\tCham: " << toggleChams << " (0)";
-
+		*/
 		SetConsoleTextAttribute(hConsole, 7);
 		printLine();
 
@@ -217,13 +223,14 @@ public:
 		}
 		std::cout << "\n\n\tTrgr: " << toggleTrigger << " (0)";
 
-		if (toggleDelay) {
+		/*if (toggleDelay) {
 			SetConsoleTextAttribute(hConsole, 10);
 		}
 		else {
 			SetConsoleTextAttribute(hConsole, 12);
 		}
-		std::cout << "\tDl/Nr: " << toggleDelay << " (0)";
+		SetConsoleTextAttribute(hConsole, 12);
+		std::cout << "\tDl/Nr: " << toggleDelay << " (0)";*/
 
 		SetConsoleTextAttribute(hConsole, 7);
 		printLine();
@@ -238,13 +245,13 @@ public:
 
 		setAimBars();
 		/*
-					if (toggleNoRecoil) {
-						SetConsoleTextAttribute(hConsole, 10);
-					}
-					else {
-						SetConsoleTextAttribute(hConsole, 12);
-					}
-					std::cout << "\t\tnrc: " << toggleNoRecoil << " (0)";
+		if (toggleNoRecoil) {
+			SetConsoleTextAttribute(hConsole, 10);
+		}
+		else {
+			SetConsoleTextAttribute(hConsole, 12);
+		}
+		std::cout << "\t\tnrc: " << toggleNoRecoil << " (0)";
 		*/
 		SetConsoleTextAttribute(hConsole, 7);
 		printLine();
@@ -293,15 +300,22 @@ public:
 
 	void setToggles() {
 		toggleMain = true;
-		toggleVisible = true;
+		toggleVisible = false;
 		toggleRadar = true;
-		toggleFlash = true;
+		toggleFlash = false;
 		toggleChams = false;
 		toggleTrigger = false;
 		toggleDelay = false;
 		toggleNoRecoil = false;
 		toggleAim = false;
 		toggleFriendlyFire = false;
+
+		if ((GetKeyState(VK_CAPITAL) & 0x0001) != 0) {
+			pressKey(VK_CAPITAL);
+		}
+		if ((GetKeyState(VK_NUMLOCK) & 0x0001) != 0) {
+			pressKey(VK_NUMLOCK);
+		}
 	}
 
 	void printLine() {

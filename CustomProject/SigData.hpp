@@ -13,10 +13,6 @@ extern HANDLE hProcess;
 class SigData{
 	private: 
 		PatternScan ptrScan;
-		uintptr_t moduleBase;
-		uintptr_t engineBase;
-		//MODULEENTRY32 client;
-		//MODULEENTRY32 engine;
 	public:
 		//void Scan(ProcEx proc)
 		uintptr_t scan(string ptr, MODULEENTRY32 module, int offset, int extra, bool isRelative)

@@ -9,6 +9,8 @@
 #include <stdlib.h>
 #include <map>
 #include <string>
+#include <filesystem>
+#include <d3dx9math.h>
 #include "MyOffsets.hpp"
 #include "Polymorph.hpp"
 #include "MemoryRW.hpp"

@@ -49,7 +49,8 @@
 #define p250Def 36
 #define glock 4
 #define p250 786468
-#define dgle 1
+#define dgleDef 1
+#define dgle 262145
 #define tec9 30
 #define dualB 2
 #define five7 3

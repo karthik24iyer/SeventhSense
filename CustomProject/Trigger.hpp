@@ -12,23 +12,26 @@ class Trigger {
 	private:
 		FeatureUtil util;
 		Stable nr;
+		int aimBoneList[6] = { 8, 8, 8, 7, 7, 6 };
 	public:
 
-		void callTrigger() {
-			uintptr_t localPlayer = util.getLocalPlayer();
-			DWORD enemyOnCH = mem.RPM<DWORD>(moduleBase + dwEntityList + ((util.getLocalCrossID(localPlayer) - 1) * 0x10));
-			boolean isValid = util.isValidEntity(enemyOnCH);
+		void callTrigger(uintptr_t localPlayer) {
+			//uintptr_t localPlayer = util.getLocalPlayer();
+			uintptr_t enemyOnCH = mem.RPM<uintptr_t>(moduleBase + dwEntityList + ((util.getLocalCrossID(localPlayer) - 1) * 0x10));
+			if(!util.isValidEntity(enemyOnCH)) return;
 			boolean isFriendlyFire = toggleFriendlyFire && (util.getEntityTeam(localPlayer) == util.getEntityTeam(enemyOnCH));
-			if ((util.getEntityTeam(localPlayer) != util.getEntityTeam(enemyOnCH) && isValid) || (isFriendlyFire && isValid))
+			if ((util.getEntityTeam(localPlayer) != util.getEntityTeam(enemyOnCH)) || (isFriendlyFire))
 			{
-				forceAttack(localPlayer);
+				forceAttack(localPlayer, enemyOnCH);
 			}
 		}
-		void forceAttack(uintptr_t localPlayer)
+		void forceAttack(uintptr_t localPlayer, uintptr_t enemyOnCH)
 		{
 			moduleBase = util.getModuleBase();
-			DWORD activeWeapon = util.getActiveWeapon(localPlayer);
-			long activeWeaponId = util.getActiveWeaponId(activeWeapon);
+			//DWORD activeWeapon = util.getActiveWeapon(localPlayer);
+			int activeWeaponId = util.getActiveWeaponId(util.getActiveWeapon(localPlayer));
+			if (util.getIsBurstFWeapon(activeWeaponId)
+				|| util.getIsSpam(activeWeaponId)) return;
 			//std::cout << "\nfound id: "<< activeWeaponId;
 			srand((unsigned int)time(0));
 			int delay = 100 + rand() % 100 + 1;
@@ -50,17 +53,18 @@ class Trigger {
 			else if (util.getIsSpam(activeWeaponId)) {
 				isSpam = true;
 			}*/
+
 			else if (util.getIsSingleFWeapon(activeWeaponId)) {
 				isSingleFWeapon = true;
 			}
 			else if (util.getIsDgle(activeWeaponId)) {
 				isDgle = true;
 			}
-			else if (util.getIsSemiFWeapon(activeWeaponId)) {
-				isSemiFWeapon = true;
-			}
 			else if (util.getIsGay(activeWeaponId)) {
 				isGay = true;
+			}
+			else if (util.getIsSemiFWeapon(activeWeaponId)) {
+				isSemiFWeapon = true;
 			}
 
 			if (isSniper && util.isScoped(localPlayer) && !util.isEntityMoving(localPlayer)) {
@@ -70,9 +74,9 @@ class Trigger {
 				else {
 					Sleep(delay % 5);
 				}
-				startFire();
+				util.startFire();
 				Sleep(20);
-				stopFire();
+				util.stopFire();
 			}
 			else if (!isSniper) {
 
@@ -85,13 +89,13 @@ class Trigger {
 					}
 					int clipCount = 10;
 					while (clipCount > 0) {
-						startFire();
+						util.startFire();
 						clipCount--;
 						Sleep(15);
 					}
-					stopFire();
+					util.stopFire();
 				}
-				else */if (isSemiFWeapon) {
+				else if (isSemiFWeapon) {
 					if (toggleDelay) {
 						Sleep(delay % 50);
 					}
@@ -100,14 +104,14 @@ class Trigger {
 					}
 					int clipCount = 7;
 					while (clipCount > 0) {
-						startFire();					
+						util.startFire();					
 						clipCount--;
 						Sleep(25);
 					}
-					stopFire();
-				}
-
-				if (isSingleFWeapon) {
+					util.stopFire();
+				}*/
+				
+				if (isSingleFWeapon || isSemiFWeapon) {
 					if (toggleDelay) {
 						Sleep(delay % 50);
 					}
@@ -116,22 +120,29 @@ class Trigger {
 					}
 					int clipCount = 1;
 					while (clipCount > 0) {
-						startFire();
+						util.startFire();
 						clipCount--;
 						Sleep(15);
 					}
-					stopFire();
+					util.stopFire();
 				}
 
 				else if (isDgle) {
-					Sleep(50);
+					//Sleep(50);
 					int clipCount = 1;
 					while (clipCount > 0) {
-						startFire();
+						float delta = util.getEntityBoneDelta(util.getLocalEyePos(), util.getLocalViewAngles(), 
+							enemyOnCH, aimBoneList[rand() % 6]);
+						//std::cout << "\n delta: " << delta;
+
+						if (delta > 1.f) break;
+
+						util.startFire();
+						//std::cout << "\n shot ";
 						clipCount--;
-						Sleep(50);
+						Sleep(15);
 					}
-					stopFire();
+					util.stopFire();
 				}
 				else if (isGay) {
 					int clipCount = 5;
@@ -139,35 +150,29 @@ class Trigger {
 						Sleep(delay);
 					}
 					else {
-						Sleep(delay % 25);
+						Sleep(delay % 7);
 					}
 					while (clipCount > 0) {
 						if (util.isScoped(localPlayer) && !util.isEntityMoving(localPlayer)) {
-							startFire();					
+							util.startFire();					
 						}
 						clipCount--;
-						Sleep(25);
+						Sleep(15);
 					}
-					stopFire();
+					util.stopFire();
 				}
 				/*else if (isSpam) {
 					Sleep(delay % 25);
 					int clipCount = 50;
 					while (clipCount > 0) {
-						startFire();
+						util.startFire();
 						clipCount--;
 						Sleep(15);
 					}
-					stopFire();
+					util.stopFire();
 				}*/
 			}
 		}
 
-		void startFire() {
-			mem.WPM<int>(moduleBase + dwForceAttack, 5);
-		}
-
-		void stopFire() {
-			mem.WPM<int>(moduleBase + dwForceAttack, 4);
-		}
+		
 };
