@@ -8,24 +8,30 @@ extern MODULEENTRY32 client;
 extern MODULEENTRY32 engine;
 
 const short int maxPlayers = 32;
-const float chamsBrightness = 10.f;
-float chamsBrightnessReset = 0.f;
+//const float chamsBrightness = 10.f;
+//float chamsBrightnessReset = 0.f;
 
+float cursorPosX;
+float cursorPosY;
+const float ScreenCenterX = (float) GetSystemMetrics(SM_CXSCREEN) / 2;
+const float ScreenCenterY = (float) GetSystemMetrics(SM_CYSCREEN) / 2;
 
 int main() {
 	bool areOffsetsLoaded = 0;
 	pm.polymorphic();
 	SetConsoleTitle(pm.titleGen(rand() % 100 + (time(0) % 1000)).c_str());
 	menu.showOTM();
+	//menu.setButtons();
 
 restart:
 
 	menu.setToggles();
+	char map;
 	bool isWorking = 1;
 	bool chamCount = 0;
 	bool debug = 0;
-	resetChams = 0;
-	bool isEntityLoaded = 0;	
+	//resetChams = 0;
+	bool isEntityLoaded = 0;
 	pm.polymorphic();
 	SetConsoleTitle(pm.titleGen(rand() % 100 + (time(0) % 1000)).c_str());
 	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -45,7 +51,7 @@ restart:
 		if (!debug) {
 			isWorking = 0;
 			std::cout << "\ttitle not found\n\n";
-				
+
 		}
 	}
 	else {
@@ -62,13 +68,36 @@ restart:
 			sig.ScanAll(client, engine);
 			areOffsetsLoaded = 1;
 		}
+
+		std::cout << "\n\t map=?  ";
+		//map = 'm';
+		std::cin >> map;
+		char maps[] = { 'd', 'D', 'i', 'I', 'm', 'M',
+			'o', 'O', 'v', 'V', 'n', 'N', 'a', 'A', 'c', 'C', '\0'};
+		
+		for (int i = 0; i < 14; i++) {
+			if (map == maps[i]) {
+				isWorking = 1;
+				menu.showConsoleMsg();
+				break;
+			}
+			else {
+				isWorking = 0;
+			}
+		}
+		std::cout << "\n\n";
+
+		cursorPosX = ScreenCenterX;
+		cursorPosY = ScreenCenterY;
+		//std::cout << "\n nextBeforeX = " << cursorPosX;
+		//std::cout << "\t nextBeforeY = " << cursorPosY;
 	}
 
 
-	while (!GetAsyncKeyState(VK_END) && isWorking && (util.isInGame()|| debug))
+	while (!GetAsyncKeyState(VK_END) && isWorking && (util.isInGame() || debug))
 	{
 		menu.fetchInput();
-		
+
 		if (!toggleMain) continue;
 
 		pm.polymorphic();
@@ -94,30 +123,37 @@ restart:
 
 		uintptr_t entity[maxPlayers];
 		int entityTeam[maxPlayers];
-		int currentPlayers = 1;
+		int currentPlayers = 0;
 
-		for (int i = 1; i < maxPlayers; i++) {
-			entity[currentPlayers] = util.getCurrentEntity(i);
-			if (!util.isValidEntity(entity[currentPlayers])) {
+		for (int i = 0; i < maxPlayers; i++) {
+			uintptr_t currentEntity = util.getCurrentEntity(i);
+			if (!util.isValidEntity(currentEntity) || localPlayer==currentEntity) {
 				continue;
 			}
-			entityTeam[currentPlayers] = util.getEntityTeam(entity[currentPlayers]);
+			//cout << "\n valid " << i;
+			entity[currentPlayers] = currentEntity;
+			entityTeam[currentPlayers] = util.getEntityTeam(currentEntity);
 			currentPlayers++;
 		}
 
 		if (toggleAim) {
 			aim.aimBot(localPlayer, entity, currentPlayers);
 		}
-
-		if (toggleVisible) {
+		if (toggleRadar && !toggleAim) {
+			rdr.showEntityLocation(map, localPlayer, entity, entityTeam, currentPlayers);
+			//vis.showEntityOnRadar(entity, currentPlayers);
+		}
+		if (toggleTrigger) {
+			trgr.callTrigger(localPlayer);
+		}
+		
+		if (toggleVisible && !toggleAim) {
 			vis.makeEntityVisible(localPlayer, entity, entityTeam, currentPlayers);
+			//vis.showPlayerLocation(map, localPlayer, entity, entityTeam, currentPlayers);
 		}
 
-		if (toggleRadar) {
-			vis.showEntityOnRadar(entity, currentPlayers);
-		}
-
-		/*if (toggleFlash) {
+		/*
+		if (toggleFlash) {
 			vis.stopFlash(localPlayer);
 		}
 		else {
@@ -133,15 +169,11 @@ restart:
 			cham.disableChams(entity, entityTeam, currentPlayers);
 			cham.glowCham(engineBase, chamsBrightnessReset);
 			resetChams = false;
-		}*/
-
-		if (toggleTrigger) {		
-			trgr.callTrigger(localPlayer);
 		}
 
-		/*else if (toggleNoRecoil && !toggleTrigger) {
+		else if (toggleNoRecoil && !toggleTrigger) {
 			nr.noRecoil(localPlayer);
-		}*/	
+		}*/
 	}
 	mem.closeHandle();
 	if (!isWorking) {

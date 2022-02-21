@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SrcSDK.hpp"
+#include "../Misc/SrcSDK.hpp"
 
 extern MODULEENTRY32 client;
 

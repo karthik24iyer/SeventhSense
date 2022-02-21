@@ -1,6 +1,7 @@
 #pragma once
 
 //knife
+#define myKnife 197120
 #define knifeCT 42
 #define knifeT 59
 #define c4 49
@@ -51,7 +52,8 @@
 #define p250 786468
 #define dgleDef 1
 #define dgle 262145
-#define tec9 30
+#define tec9Def 30
+#define tec9 262174
 #define dualB 2
 #define five7 3
 #define usps 262205

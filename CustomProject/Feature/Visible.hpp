@@ -1,21 +1,63 @@
 #pragma once
 
-#include "StructUtil.hpp"
+//#include <cstring>
+#include "../Util/StructUtil.hpp"
+#include "../Util/DrawText.hpp"
+#include "../Util/CoOrd.hpp"
+#include "../Toggles.hpp"
 
 extern bool toggleFriendlyFire;
+extern int originOffsetX;
+extern int originOffsetY;
+//extern int originOffsetZ;
+extern int spanOffset;
+extern bool showPlayerRefForRadar;
+//extern int upOffsetZ = 0;
+//extern int downOffsetZ = 0;
 
 class Visible {
 	
 	private:
 		FeatureUtil util;
+		AimUtil aimUtil;
+		DrawTxt txt;
+		float originX = d2X;
+		float originY = d2Y;
+		float posX=0;
+		float posY=0;
+		float posZ=0;
+		int span = d2Span;
+		int size = 10;
+		char color = 'g';
 	
+		void showEntity(uintptr_t localPlayer, uintptr_t entity, int offset) {
+			//txt.drawRect((int)posX, (int)posY, size, color);
+			util.setLastPlace(entity);
+			const char* entityLastPlace = util.entityLastPlace;
+			if (entityLastPlace != NULL) {
+				//std::cout << "\n entityLastPlace=" << entityLastPlace;
+				txt.drawMyText(450 + offset, 200, entityLastPlace);
+			}
+		}
 	public:
 
 		void makeEntityVisible(uintptr_t localPlayer, uintptr_t entity[], int entityTeam[], int maxPlayers) {
+			int localTeam = util.getIntOffset(localPlayer + m_iTeamNum);
+			int offset = 0;
+			for (int i = 0; i < maxPlayers; i++) {
+				if (localTeam != entityTeam[i] || (localTeam == entityTeam[i] && toggleFriendlyFire)) {
+					showEntity(localPlayer, entity[i], offset);
+					offset = offset + 100;
+				}
+			}
+		}
 
-			/*if (!util.isMapLoaded()) {
-				return;
-			}*/
+		/* //Uses WPM, Deprecated...
+		void makeEntityVisible(uintptr_t localPlayer, uintptr_t entity[], int entityTeam[], int maxPlayers) {
+
+			//if (!util.isMapLoaded()) {
+			//	return;
+			//}
 
 			int localTeam = util.getIntOffset(localPlayer + m_iTeamNum);
 
@@ -41,9 +83,9 @@ class Visible {
 					if (util.isEntityDefusing(entity[i])) {
 						glowStruct.setup('y'); //yellow
 					}
-					/*if (util.isEntityScoped(entity[i])) {
-						glowStruct.setup('g'); //green
-					}*/
+					//if (util.isEntityScoped(entity[i])) {
+					//	glowStruct.setup('g'); //green
+					//}
 				}
 				if (util.isEnityHoldingC4(entity[i])) {
 					glowStruct.setup('y'); //yellow
@@ -83,5 +125,5 @@ class Visible {
 			}
 
 		}
-
+		*/
 };

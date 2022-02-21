@@ -2,31 +2,48 @@
 
 #include <Windows.h>
 
+extern bool hideMenu;
 extern bool toggleMain;
 extern bool toggleVisible;
 extern bool toggleRadar;
-extern bool toggleFlash;
-extern bool toggleChams;
-extern bool resetChams;
+//extern bool toggleFlash;
+//extern bool toggleChams;
+//extern bool resetChams;
 extern bool toggleTrigger;
-extern bool toggleDelay;
-extern bool toggleNoRecoil;
+//extern bool toggleDelay;
+//extern bool toggleNoRecoil;
 extern bool toggleAim;
 extern bool toggleFriendlyFire;
 
-const int MAX_AIM_SMOOTH = 30;
-const int MIN_AIM_SMOOTH = 10;
-const int MAX_AIM_FOV = 28;
-const int MIN_AIM_FOV = 20;
-const int DEF_AIM_SMOOTH = 10;
-const int DEF_AIM_FOV = 24;
-const int STEP_AIM_SMOOTH = 5;
-const int STEP_AIM_FOV = 2;
+extern float cursorPosX;
+extern float cursorPosY;
+extern const float ScreenCenterX;
+extern const float ScreenCenterY;
+/*
+const short MAX_AIM_SMOOTH = 30;
+const short MIN_AIM_SMOOTH = 10;
+const short MAX_AIM_FOV = 24;
+const short MIN_AIM_FOV = 8;
+const short STEP_AIM_SMOOTH = 5;
+const short STEP_AIM_FOV = 4;
+*/
 
+const short DEF_AIM_SMOOTH = 20;
+const short DEF_AIM_FOV = 4;
+short aimSmooth = DEF_AIM_SMOOTH;
+short aimFov = DEF_AIM_FOV;
 
-int aimSmooth = DEF_AIM_SMOOTH;
-int aimFov = DEF_AIM_FOV;
 bool aimHold = 1;
+
+int originOffsetX = 0;
+int originOffsetY = 0;
+int originOffsetZ = 0;
+int spanOffset = 0;
+bool showPlayerRefForRadar = 0;
+int upOffsetZ = 0;
+int downOffsetZ = 0;
+
+float timeDelay = 1.4f;
 
 extern HANDLE hConsole;
 
@@ -44,19 +61,95 @@ public:
 	}
 
 	void fetchInput() {
+
+		if (GetAsyncKeyState(VK_F3) & 1) {
+			hideMenu = !hideMenu;
+			showConsoleMsg();
+		}
+
 		if (GetAsyncKeyState(VK_HOME) & 1) {
 			toggleMain = !toggleMain;
 			showConsoleMsg();
 		}
 
-		else if (GetAsyncKeyState(VK_NUMLOCK) & 1) {
+		else if (GetAsyncKeyState(VK_SCROLL) & 1) {
 			toggleVisible = !toggleVisible;
 			showConsoleMsg();
 		}
-		//std::cout << "\nstatus: "<< isToggle;
 
-		else if (GetAsyncKeyState(VK_F3) & 1) {
+		else if (GetAsyncKeyState(VK_NUMLOCK) & 1) {
 			toggleRadar = !toggleRadar;
+			showConsoleMsg();
+		}
+
+		else if ((GetAsyncKeyState(VK_RMENU) & 1) && toggleRadar) {
+			showPlayerRefForRadar = !showPlayerRefForRadar;
+			showConsoleMsg();
+		}
+
+		else if ((GetAsyncKeyState(VK_RSHIFT) & 1) && showPlayerRefForRadar) {
+			spanOffset = spanOffset - 2;
+			showConsoleMsg();
+		}
+
+		else if ((GetAsyncKeyState(VK_RCONTROL) & 1) && showPlayerRefForRadar) {
+			spanOffset = spanOffset + 2;
+			showConsoleMsg();
+		}
+
+		else if ((GetAsyncKeyState(VK_UP) & 1) && showPlayerRefForRadar) {
+			originOffsetY = originOffsetY - 2;
+			showConsoleMsg();
+		}
+
+		else if ((GetAsyncKeyState(VK_DOWN) & 1) && showPlayerRefForRadar) {
+			originOffsetY = originOffsetY + 2;
+			showConsoleMsg();
+		}
+
+		else if ((GetAsyncKeyState(VK_RIGHT) & 1) && showPlayerRefForRadar) {
+			originOffsetX = originOffsetX + 2;
+			showConsoleMsg();
+		}
+
+		else if ((GetAsyncKeyState(VK_LEFT) & 1) && showPlayerRefForRadar) {
+			originOffsetX = originOffsetX - 2;
+			showConsoleMsg();
+		}
+		
+		else if ((GetAsyncKeyState(VK_NUMPAD7) & 1) && showPlayerRefForRadar) {
+			downOffsetZ = downOffsetZ - 50;
+			showConsoleMsg();
+		}
+
+		else if ((GetAsyncKeyState(VK_NUMPAD4) & 1) && showPlayerRefForRadar) {
+			downOffsetZ = downOffsetZ + 50;
+			showConsoleMsg();
+		}
+
+		else if ((GetAsyncKeyState(VK_NUMPAD9) & 1) && showPlayerRefForRadar) {
+			upOffsetZ = upOffsetZ + 10;
+			showConsoleMsg();
+		}
+
+		else if ((GetAsyncKeyState(VK_NUMPAD6) & 1) && showPlayerRefForRadar) {
+			upOffsetZ = upOffsetZ - 10;
+			showConsoleMsg();
+		}
+
+		else if ((GetAsyncKeyState(VK_NUMPAD1) & 1)) {
+			timeDelay = timeDelay + 0.1f;
+			if (timeDelay >= 2.f) {
+				timeDelay = 2.f;
+			}
+			showConsoleMsg();
+		}
+
+		else if ((GetAsyncKeyState(VK_NUMPAD0) & 1)) {
+			timeDelay = timeDelay - 0.1f;
+			if (timeDelay <= 0.1f) {
+				timeDelay = 0.1f;
+			}
 			showConsoleMsg();
 		}
 
@@ -64,9 +157,6 @@ public:
 			//cout << "\ntoggle";
 			toggleTrigger = !toggleTrigger;
 			showConsoleMsg();
-			/*if (toggleDelay && toggleTrigger) {
-				pressKey(VK_NUMLOCK);
-			}*/
 
 		}
 
@@ -88,47 +178,48 @@ public:
 			toggleChams = !toggleChams;
 			if (!toggleChams) resetChams = true;
 			showConsoleMsg();
-		}*/
-
-		else if (GetAsyncKeyState(VK_RSHIFT) & 1) {
+		}
+		//------------------------------------------------------
+		*/
+		/*else if ((GetAsyncKeyState(VK_RSHIFT) & 1) && toggleAim) {
 			aimSmooth = DEF_AIM_SMOOTH;
 			aimFov = DEF_AIM_FOV;
 			showConsoleMsg();
 		}
-		else if ((GetAsyncKeyState(VK_UP) & 1)) {
+		else if ((GetAsyncKeyState(VK_UP) & 1) && toggleAim) {
 			if (aimFov < MAX_AIM_FOV) {
 				aimFov += STEP_AIM_FOV;
 				showConsoleMsg();
 			}
 		}
 
-		else if ((GetAsyncKeyState(VK_DOWN) & 1)) {
+		else if ((GetAsyncKeyState(VK_DOWN) & 1) && toggleAim) {
 			if (aimFov > MIN_AIM_FOV) {
 				aimFov -= STEP_AIM_FOV;
 				showConsoleMsg();
 			}
 		}
 
-		else if ((GetAsyncKeyState(VK_RIGHT) & 1)) {
+		else if ((GetAsyncKeyState(VK_RIGHT) & 1) && toggleAim) {
 			if (aimSmooth < MAX_AIM_SMOOTH) {
 				aimSmooth += STEP_AIM_SMOOTH;
 				showConsoleMsg();
 			}
 		}
 
-		else if ((GetAsyncKeyState(VK_LEFT) & 1)) {
+		else if ((GetAsyncKeyState(VK_LEFT) & 1) && toggleAim) {
 			if (aimSmooth > MIN_AIM_SMOOTH) {
 				aimSmooth -= STEP_AIM_SMOOTH;
 				showConsoleMsg();
 			}
 		}
-
-		else if (GetAsyncKeyState(VK_F9) & 1) {
+		*/
+		else if (GetAsyncKeyState(VK_F1) & 1) {
 			toggleFriendlyFire = !toggleFriendlyFire;
 			showConsoleMsg();
 		}
-
-		if (GetAsyncKeyState(VK_F1)) {
+		
+		if (GetAsyncKeyState(VK_F9)) {
 			toggleAim = 1;
 			//std::cout << "\ntoggleAimIf=" << toggleAim;
 			if (aim1DisplayOnce) {
@@ -142,26 +233,32 @@ public:
 			toggleAim = 0;
 			//std::cout << "\ntoggleAimElse=" << toggleAim;
 			if (aim0DisplayOnce) {
+				//std::cout << "\n --------------------------------------------------------------------------\n";
 				aim0DisplayOnce = 0;
 				aim1DisplayOnce = 1;
+				cursorPosX = ScreenCenterX;
+				cursorPosY = ScreenCenterY;
 				showConsoleMsg();
 			}
 		}
 
 	}
 
-	int getFovAimParam() {
+	short getFovAimParam() {
 		return aimFov;
 	}
 
-	int getSmoothAimParam() {
+	short getSmoothAimParam() {
 		return aimSmooth;
 	}
 
 	void showConsoleMsg() {
+
 		system("cls");
+		if (hideMenu) return;
+
 		SetConsoleTextAttribute(hConsole, 7);
-		std::cout << "\n\tHello World :P ... Working fine as of Blast World Final 14th Dec 21 \n";
+		std::cout << "\n\tHello World :P ... Last Updated 16th Feb 22 \n";
 		if (toggleMain) {
 			SetConsoleTextAttribute(hConsole, 10);
 		}
@@ -182,8 +279,8 @@ public:
 		}
 		std::cout << "\n\n\tVis: " << toggleVisible << " (0)";
 
-		//SetConsoleTextAttribute(hConsole, 7);
-		//printLine();
+		SetConsoleTextAttribute(hConsole, 7);
+		printLine();
 
 		if (toggleRadar) {
 			SetConsoleTextAttribute(hConsole, 10);
@@ -191,7 +288,8 @@ public:
 		else {
 			SetConsoleTextAttribute(hConsole, 12);
 		}
-		std::cout << "\tRdr: " << toggleRadar << " (1)";
+		//Old -- std::cout << "\tRdr: " << toggleRadar << " (1)";
+		std::cout << "\n\n\tRdr: " << toggleRadar << " (0)";
 
 		/*if (toggleFlash) {
 			SetConsoleTextAttribute(hConsole, 10);
@@ -211,17 +309,17 @@ public:
 			SetConsoleTextAttribute(hConsole, 12);
 		}
 		std::cout << "\n\n\tCham: " << toggleChams << " (0)";
-		*/
+		
 		SetConsoleTextAttribute(hConsole, 7);
 		printLine();
-
+		*/
 		if (toggleTrigger) {
 			SetConsoleTextAttribute(hConsole, 10);
 		}
 		else {
 			SetConsoleTextAttribute(hConsole, 12);
 		}
-		std::cout << "\n\n\tTrgr: " << toggleTrigger << " (0)";
+		std::cout << "\tTrgr: " << toggleTrigger << " (0)";
 
 		/*if (toggleDelay) {
 			SetConsoleTextAttribute(hConsole, 10);
@@ -230,11 +328,11 @@ public:
 			SetConsoleTextAttribute(hConsole, 12);
 		}
 		SetConsoleTextAttribute(hConsole, 12);
-		std::cout << "\tDl/Nr: " << toggleDelay << " (0)";*/
-
+		std::cout << "\tDl/Nr: " << toggleDelay << " (0)";
+		*/
 		SetConsoleTextAttribute(hConsole, 7);
 		printLine();
-
+		
 		if (toggleAim) {
 			SetConsoleTextAttribute(hConsole, 10);
 		}
@@ -243,7 +341,10 @@ public:
 		}
 		std::cout << "\n\n\tAm: " << toggleAim << " (0)";
 
-		setAimBars();
+		SetConsoleTextAttribute(hConsole, 5);
+		std::cout << "\tSmth: " << timeDelay;
+
+		//setAimBars();
 		/*
 		if (toggleNoRecoil) {
 			SetConsoleTextAttribute(hConsole, 10);
@@ -255,7 +356,6 @@ public:
 		*/
 		SetConsoleTextAttribute(hConsole, 7);
 		printLine();
-
 		if (toggleFriendlyFire) {
 			SetConsoleTextAttribute(hConsole, 10);
 		}
@@ -269,18 +369,18 @@ public:
 		std::cout << "\n\n\n";
 	}
 
-	void setAimBars() {
-		int bar = 0, activeBar = 0;
+	/*void setAimBars() {
+		short bar = 0, activeBar = 0;
 		SetConsoleTextAttribute(hConsole, 3);
 		std::cout << "\tSmth: ";
 		bar = (MAX_AIM_SMOOTH - MIN_AIM_SMOOTH) / STEP_AIM_SMOOTH;
-		activeBar = (int)(1 + (aimSmooth - MIN_AIM_SMOOTH) / STEP_AIM_SMOOTH);
+		activeBar = (short)(1 + (aimSmooth - MIN_AIM_SMOOTH) / STEP_AIM_SMOOTH);
 		SetConsoleTextAttribute(hConsole, 6);
-		for (int i = 0;i < activeBar;i++) {
+		for (short i = 0;i < activeBar;i++) {
 			std::cout << "|";
 		}
 		SetConsoleTextAttribute(hConsole, 7);
-		for (int i = 0;i <= bar - activeBar;i++) {
+		for (short i = 0;i <= bar - activeBar;i++) {
 			std::cout << "|";
 		}
 
@@ -289,32 +389,47 @@ public:
 		bar = (MAX_AIM_FOV - MIN_AIM_FOV) / STEP_AIM_FOV;
 		activeBar = (1 + (aimFov - MIN_AIM_FOV) / STEP_AIM_FOV);
 		SetConsoleTextAttribute(hConsole, 5);
-		for (int i = 0;i < activeBar;i++) {
+		for (short i = 0;i < activeBar;i++) {
 			std::cout << "|";
 		}
 		SetConsoleTextAttribute(hConsole, 7);
-		for (int i = 0;i <= bar - activeBar;i++) {
+		for (short i = 0;i <= bar - activeBar;i++) {
 			std::cout << "|";
 		}
-	}
+	}*/
 
 	void setToggles() {
-		toggleMain = true;
-		toggleVisible = false;
-		toggleRadar = true;
-		toggleFlash = false;
-		toggleChams = false;
-		toggleTrigger = false;
-		toggleDelay = false;
-		toggleNoRecoil = false;
-		toggleAim = false;
-		toggleFriendlyFire = false;
+		hideMenu = 0;
+		toggleMain = 1;
+		toggleVisible = 0;
+		toggleRadar = 0;
+		//toggleFlash = 0;
+		//toggleChams = 0;
+		toggleTrigger = 0;
+		//toggleDelay = 0;
+		//toggleNoRecoil = 0;
+		toggleAim = 0;
+		toggleFriendlyFire = 0;
 
+		setButtons();
+	}
+
+	void setButtons() {
+		//bool shouldRestart=0;
 		if ((GetKeyState(VK_CAPITAL) & 0x0001) != 0) {
-			pressKey(VK_CAPITAL);
+			//pressKey(VK_CAPITAL);
+			toggleTrigger = 1;
+			//Sleep(50);
 		}
 		if ((GetKeyState(VK_NUMLOCK) & 0x0001) != 0) {
-			pressKey(VK_NUMLOCK);
+			//pressKey(VK_NUMLOCK);
+			toggleRadar = 1;
+			//Sleep(50);
+		}
+		if ((GetKeyState(VK_SCROLL) & 0x0001) != 0) {
+			//pressKey(VK_SCROLL);
+			toggleVisible = 1;
+			//Sleep(50);
 		}
 	}
 
@@ -334,7 +449,7 @@ public:
 		delete[] ClearingVar1;
 	}
 
-	void pressKey(WORD key) {
+	/*void pressKey(WORD key) {
 		INPUT input;
 		WORD vkey = key;
 		input.type = INPUT_KEYBOARD;
@@ -344,10 +459,11 @@ public:
 		input.ki.wVk = vkey;
 		input.ki.dwFlags = 0; // there is no KEYEVENTF_KEYDOWN
 		SendInput(1, &input, sizeof(INPUT));
-
+		Sleep(2);
 		input.ki.dwFlags = KEYEVENTF_KEYUP;
 		SendInput(1, &input, sizeof(INPUT));
-	}
+		Sleep(2);
+	}*/
 
 	bool isMyHwId() {
 

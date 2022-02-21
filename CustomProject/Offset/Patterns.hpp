@@ -29,6 +29,8 @@ namespace signatures {
 
 	string is_c4_owner_pattern = "56 8B F1 85 F6 74 31";
 
+	string dwViewMatrix_pattern = "0F 10 05 ? ? ? ? 8D 85 ? ? ? ? B9";
+
 	string dwGetAllClasses_pattern = "A1 ? ? ? ? C3 CC CC CC CC CC CC CC CC CC CC A1 ? ? ? ? B9";
 }
 /*class Pattern {

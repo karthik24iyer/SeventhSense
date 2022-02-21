@@ -55,50 +55,59 @@ class SigData{
 					<< std::uppercase << std::hex << offset.find(itr->first)->second << '\n';
 			}*/
 
-			//Signatures-
-			dwClientState = scan(dwClientState_pattern, engine, 1, 0, true);
-			dwClientState_ViewAngles = scan(dwClientState_ViewAngles_pattern, engine, 4, 0, false);
-			dwClientState_MapDirectory = scan(dwClientState_MapDirectory_pattern, engine, 7, 0, false);
-			dwClientState_State = scan(dwClientState_State_pattern, engine, 2, 0, false);
+			//---------------------------------------------------------------------------------------------
+			//Signature = scan(pattern, dll, offset, extra, isRelative);
+			dwGetAllClasses = scan(dwGetAllClasses_pattern, client, -1, 0, true);
 			dwEntityList = scan(dwEntityList_pattern, client, 1, 0, true);
 			dwLocalPlayer = scan(dwLocalPlayer_pattern, client, 3, 4, true);
+			dwClientState = scan(dwClientState_pattern, engine, 1, 0, true);
+			dwClientState_State = scan(dwClientState_State_pattern, engine, 2, 0, false);
+			dwClientState_ViewAngles = scan(dwClientState_ViewAngles_pattern, engine, 4, 0, false);
+			dwViewMatrix = scan(dwViewMatrix_pattern, client, 3, 176, true);
+			m_bDormant = scan(m_bDormant_pattern, client, 2, 8, false);
+			/*
+			dwClientState_MapDirectory = scan(dwClientState_MapDirectory_pattern, engine, 7, 0, false);
 			dwForceAttack = scan(dwForceAttack_pattern, client, 2, 0, true);
 			dwGameDir = scan(dwGameDir_pattern, engine, 1, 0, true);
 			dwGlowObjectManager = scan(dwGlowObjectManager_pattern, client, 1, 4, true);
-			m_bDormant = scan(m_bDormant_pattern, client, 2, 8, false);
 			model_ambient_min = scan(model_ambient_min_pattern, engine, 4, 0, true);
-			dwGetAllClasses = scan(dwGetAllClasses_pattern, client, -1, 0, true);
+			*/
 
 			//Netvars-
 			Netvar nt;
+			m_vecOrigin = nt.getNetvar("m_vecOrigin", "DT_BasePlayer", 0);
+			m_iTeamNum = nt.getNetvar("m_iTeamNum", "DT_BasePlayer", 0);
 			m_iHealth = nt.getNetvar("m_iHealth", "DT_BasePlayer", 0);
+			m_lifeState = nt.getNetvar("m_lifeState", "DT_CSPlayer", 0);
+			
+			m_iState = nt.getNetvar("m_iState", "DT_BaseCombatWeapon", 0);
 			//m_bHasDefuser = nt.getNetvar("m_bHasDefuser", "DT_CSPlayer", 0);
 			//m_bHasHelmet = nt.getNetvar("m_bHasHelmet", "DT_CSPlayer", 0);
 			//m_bInReload = nt.getNetvar("m_flNextPrimaryAttack", "DT_BaseCombatWeapon", 109);
 			m_bIsDefusing = nt.getNetvar("m_bIsDefusing", "DT_CSPlayer", 0);
-			//m_bIsScoped = nt.getNetvar("m_bIsScoped", "DT_CSPlayer", 0);
-			m_bSpotted = nt.getNetvar("m_bSpotted", "DT_BaseEntity", 0);
-			m_bSpottedByMask = nt.getNetvar("m_bSpottedByMask", "DT_BaseEntity", 0);
+			m_bIsScoped = nt.getNetvar("m_bIsScoped", "DT_CSPlayer", 0);
+			//m_bSpotted = nt.getNetvar("m_bSpotted", "DT_BaseEntity", 0);
+			//m_bSpottedByMask = nt.getNetvar("m_bSpottedByMask", "DT_BaseEntity", 0);
+			
 			m_dwBoneMatrix = nt.getNetvar("m_nForceBone", "DT_BaseAnimating", 28);
 			m_iShotsFired = nt.getNetvar("m_iShotsFired", "DT_CSPlayer", 0);
-			m_iState = nt.getNetvar("m_iState", "DT_BaseCombatWeapon", 0);
-			m_iTeamNum = nt.getNetvar("m_iTeamNum", "DT_BasePlayer", 0);
-			m_lifeState = nt.getNetvar("m_lifeState", "DT_CSPlayer", 0);
 			m_clrRender = nt.getNetvar("m_clrRender", "DT_BaseEntity", 0);
 			m_aimPunchAngle = nt.getNetvar("m_aimPunchAngle", "DT_BasePlayer", 0);
-			m_vecOrigin = nt.getNetvar("m_vecOrigin", "DT_BasePlayer", 0);
 			m_vecVelocity = nt.getNetvar("m_vecVelocity[0]", "DT_CSPlayer", 0);
 			m_vecViewOffset = nt.getNetvar("m_vecViewOffset[0]", "DT_CSPlayer", 0);
 			//m_viewPunchAngle = nt.getNetvar("m_viewPunchAngle", "DT_BasePlayer", 0);
 			//m_flFlashDuration = nt.getNetvar("m_flFlashDuration", "DT_CSPlayer", 0);
-			m_flFlashMaxAlpha = nt.getNetvar("m_flFlashMaxAlpha", "DT_CSPlayer", 0);
-			m_iGlowIndex = nt.getNetvar("m_flFlashDuration", "DT_CSPlayer", 24);
+			
+			//m_flFlashMaxAlpha = nt.getNetvar("m_flFlashMaxAlpha", "DT_CSPlayer", 0);
+			//m_iGlowIndex = nt.getNetvar("m_flFlashDuration", "DT_CSPlayer", 24);
+			
 			m_iItemDefinitionIndex = nt.getNetvar("m_iItemDefinitionIndex", "DT_BaseCombatWeapon", 0);
 			m_iCrosshairId = nt.getNetvar("m_bHasDefuser", "DT_CSPlayer", 92);
 			m_iClip1 = nt.getNetvar("m_iClip1", "DT_BaseCombatWeapon", 0);
 			m_hActiveWeapon = nt.getNetvar("m_hActiveWeapon", "DT_BasePlayer", 0);
-			//std::cout << "\n\n";
-			
+			m_szLastPlaceName = nt.getNetvar("m_szLastPlaceName", "DT_CSPlayer", 0);
+
+			//std::cout << "\n\n";			
 			//std::cout << "\n dwClientState: 0x" << std::uppercase << std::hex << dwClientState << "\n";
 		}
 };

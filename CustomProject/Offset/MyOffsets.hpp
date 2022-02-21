@@ -11,6 +11,7 @@ namespace offsets {
 	ptrdiff_t dwLocalPlayer;
 	ptrdiff_t m_bDormant;
 	ptrdiff_t model_ambient_min;
+	ptrdiff_t dwViewMatrix;
 
 	ptrdiff_t m_iHealth;
 	//ptrdiff_t m_bHasDefuser;
@@ -38,4 +39,5 @@ namespace offsets {
 	ptrdiff_t m_iCrosshairId;
 	ptrdiff_t m_iClip1;
 	ptrdiff_t m_hActiveWeapon;
+	ptrdiff_t m_szLastPlaceName;
 }

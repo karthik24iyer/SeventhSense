@@ -49,9 +49,9 @@ class MemoryRW {
 			return buffer;
 		}
 
-		template<typename T> void WPM(SIZE_T address, T buffer) {
+		/*template<typename T> void WPM(SIZE_T address, T buffer) {
 			WriteProcessMemory(hProcess, (LPVOID)address, &buffer, sizeof(buffer), NULL);
-		}
+		}*/
 
 		void closeHandle() {
 			CloseHandle(hProcess);

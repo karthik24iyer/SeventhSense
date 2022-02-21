@@ -1,6 +1,6 @@
 #pragma once
 
-#include "stdafx.hpp"
+#include "../Misc/stdafx.hpp"
 
 //constexpr int ModuleFinder = 1337;
 extern HANDLE hProcess;
